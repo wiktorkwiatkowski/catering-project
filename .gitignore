@@ -1,0 +1,25 @@
+# Środowisko wirtualne
+.venv/
+
+# Pliki tymczasowe Pythona
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+
+# Pliki logów i backupów
+*.log
+*.bak
+*.swp
+
+# Bazy danych lokalne lub tymczasowe
+*.sqlite3
+*.db
+
+# Systemowe
+.DS_Store
+Thumbs.db
+
+# VS Code
+.vscode/
+

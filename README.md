@@ -13,11 +13,12 @@ cd catering-project
 ```
 ### Utwórz i aktywuj środowisko wirtualne
 > [!NOTE]
-> Sprawdź wersję pythona:
+> Sprawdź, czy masz zainstalowanego Pythona:
 > ```bash
 > python3 --version
 > ```
-> Jeśli nie masz zainstalowanego 
+
+> Jeśli polecenie nie działa lub Python nie jest zainstalowany, użyj:
 > ```bash
 > sudo apt update
 > sudo apt install python3 python3-pip

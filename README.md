@@ -26,6 +26,10 @@ Następnie w **VSC** wejdź:
 
 > Teraz podpowiedzi i autouzupełnianie w VSC powinno działać
 
+#### Zainstaluj wymagane paczki
+```bash
+pip install -r requirements.txt
+```
 ### 2. Konfiguracja MySQL
 
 #### Zainstaluj MySQL (jeśli nie masz)

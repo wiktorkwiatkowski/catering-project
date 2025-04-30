@@ -12,6 +12,17 @@ git clone https://github.com/wiktorkwiatkowski/catering-project.git
 cd catering-project
 ```
 ### Utwórz i aktywuj środowisko wirtualne
+> [!NOTE]
+> Sprawdź wersję pythona:
+> ```bash
+> python3 --version
+> ```
+> Jeśli nie masz zainstalowanego 
+> ```bash
+> sudo apt update
+> sudo apt install python3 python3-pip
+>```
+
 > [!WARNING]
 > Upewnij się, że jesteś w katalogu `catering-project/` przed uruchomieniem komend.
 
@@ -23,8 +34,15 @@ Następnie w **VSC** wejdź:
 1. Otwórz polecenia `Ctrl+Shift+P`
 2. Wpisz `Python: Select Interpreter`
 3. Wybierz interpreter z .venv (np. .venv/bin/python)
-
 > Teraz podpowiedzi i autouzupełnianie w VSC powinno działać
+ 
+> [!NOTE]
+> Gdy uruchamiasz aplikację z terminala, musisz najpierw aktywować wirtualne środowisko:
+```bash
+source /ścieżka/do/projektu/.venv/bin/activate
+```
+> Jeśli jednak uruchamiasz projekt bezpośrednio z Visual Studio Code (przy ustawionym interpreterze .venv), nie musisz robić tego ręcznie - VS Code zrobi to automatycznie.
+
 
 #### Zainstaluj wymagane paczki
 ```bash

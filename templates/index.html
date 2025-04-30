@@ -1,13 +1,19 @@
 <!DOCTYPE html>
 <html lang="pl">
-<head>
-  <meta charset="UTF-8">
-  <title>Menu</title>
-  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
-</head>
-<body>
-  <h1>Dostępne dania:</h1>
-  <ul id="menu-list"></ul>
-  <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+  <head>
+    <meta charset="UTF-8" />
+    <title>Menu</title>
+    <link
+      rel="stylesheet"
+      href="{{ url_for('static', filename='style.css') }}"
+    />
+  </head>
+  <body>
+    <h1>Dostępne dania:</h1>
+    <ul>
+      {% for item in menu %}
+      <li>{{ item.name }} — {{ item.price }} zł</li>
+      {% endfor %}
+    </ul>
+  </body>
 </html>

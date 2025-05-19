@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Panel użytkownika</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/">Strona główna</a></li>
+        <li><a href="/order">Złóż zamówienie</a></li>
+        <li><a href="/dashboard">Moje konto</a></li>
+        <li><a href="/logout">Wyloguj się</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Panel użytkownika</h1>
+    <p>Witaj, {{ user.imie }} {{ user.nazwisko }}!</p>
+    
+    <div class="role-info">
+      <h2>Twoje role:</h2>
+      <ul>
+        {% for rola in role %}
+          <li>{{ rola }}</li>
+        {% endfor %}
+      </ul>
+    </div>
+    
+    {% if 'klient' in role %}
+    <div class="dashboard-section">
+      <h2>Twoje zamówienia:</h2>
+      {% if zamowienia %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Data realizacji</th>
+              <th>Liczba zestawów</th>
+              <th>Preferencje dietetyczne</th>
+              <th>Status</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for z in zamowienia %}
+            <tr>
+              <td>{{ z.id }}</td>
+              <td>{{ z.data_realizacji }}</td>
+              <td>{{ z.liczba_zestawow }}</td>
+              <td>{{ z.preferencje_dietetyczne or '-' }}</td>
+              <td>W realizacji</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Nie masz jeszcze żadnych zamówień.</p>
+      {% endif %}
+      
+      <a href="/order" class="button">Złóż nowe zamówienie</a>
+    </div>
+    {% endif %}
+    
+    {% if 'dostawca' in role %}
+    <div class="dashboard-section">
+      <h2>Zamówienia do dostarczenia:</h2>
+      {% if dostawy %}
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th>
+              <th>Klient</th>
+              <th>Data realizacji</th>
+              <th>Liczba zestawów</th>
+              <th>Preferencje</th>
+              <th>Akcje</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for d in dostawy %}
+            <tr>
+              <td>{{ d.id }}</td>
+              <td>{{ d.klient_imie }} {{ d.klient_nazwisko }}</td>
+              <td>{{ d.data_realizacji }}</td>
+              <td>{{ d.liczba_zestawow }}</td>
+              <td>{{ d.preferencje_dietetyczne or '-' }}</td>
+              <td>
+                <a href="#" class="button">Oznacz jako dostarczone</a>
+              </td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p>Nie masz jeszcze żadnych zamówień do dostarczenia.</p>
+      {% endif %}
+    </div>
+    {% endif %}
+    
+    {% if 'administrator' in role %}
+    <div class="dashboard-section">
+      <h2>Panel administratora:</h2>
+      <div class="dashboard-cards">
+        <div class="dashboard-card">
+          <h3>Zarządzanie użytkownikami</h3>
+          <p>Dodawaj, edytuj i usuwaj użytkowników systemu</p>
+          <a href="#" class="button">Przejdź</a>
+        </div>
+        
+        <div class="dashboard-card">
+          <h3>Zarządzanie menu</h3>
+          <p>Dodawaj i edytuj pozycje menu</p>
+          <a href="#" class="button">Przejdź</a>
+        </div>
+        
+        <div class="dashboard-card">
+          <h3>Wszystkie zamówienia</h3>
+          <p>Przegląd wszystkich zamówień w systemie</p>
+          <a href="#" class="button">Przejdź</a>
+        </div>
+      </div>
+    </div>
+    {% endif %}
+  </div>
+</body>
+</html>

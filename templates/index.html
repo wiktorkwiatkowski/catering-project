@@ -1,19 +1,53 @@
 <!DOCTYPE html>
 <html lang="pl">
-  <head>
-    <meta charset="UTF-8" />
-    <title>Menu</title>
-    <link
-      rel="stylesheet"
-      href="{{ url_for('static', filename='style.css') }}"
-    />
-  </head>
-  <body>
-    <h1>Dostępne dania:</h1>
-    <ul>
-      {% for item in menu %}
-      <li>{{ item.name }} — {{ item.price }} zł</li>
-      {% endfor %}
-    </ul>
-  </body>
+<head>
+  <meta charset="UTF-8" />
+  <title>System Cateringowy</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/">Strona główna</a></li>
+        {% if session.user_id %}
+          <li><a href="/order">Złóż zamówienie</a></li>
+          <li><a href="/dashboard">Moje konto</a></li>
+          <li><a href="/logout">Wyloguj się</a></li>
+        {% else %}
+          <li><a href="/login">Zaloguj się</a></li>
+          <li><a href="/register">Zarejestruj się</a></li>
+        {% endif %}
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Witaj w Systemie Cateringowym</h1>
+    
+    {% if session.user_id %}
+      <p>Jesteś zalogowany jako: {{ session.user_name }}</p>
+    {% else %}
+      <p>Zaloguj się, aby korzystać z pełni funkcjonalności systemu.</p>
+    {% endif %}
+    
+    <div class="menu-section">
+      <h2>Menu na dziś:</h2>
+      <div class="menu-items">
+        {% for item in menu %}
+        <div class="menu-item">
+          <h3>{{ item.nazwa if 'nazwa' in item else item.name|default('Nazwa niedostępna') }}</h3>
+          <p>Typ: {{ item.typ if 'typ' in item else item.type|default('Typ niedostępny') }}</p>
+          <p>Cena: {{ item.cena if 'cena' in item else item.price|default('0') }} zł</p>
+          {% if session.user_id %}
+            <a href="/order" class="button">Zamów</a>
+          {% else %}
+            <a href="/login" class="button">Zaloguj się, aby zamówić</a>
+          {% endif %}
+        </div>
+        {% endfor %}
+      </div>
+    </div>
+  </div>
+</body>
 </html>

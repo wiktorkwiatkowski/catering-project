@@ -1,0 +1,73 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Złóż zamówienie</title>
+  <script>
+    async function submitOrder(event) {
+      event.preventDefault();
+
+      const form = event.target;
+      const data = {
+        klient_id: form.klient_id.value,
+        dostawca_id: form.dostawca_id.value,
+        data_realizacji: form.data_realizacji.value,
+        liczba_zestawow: form.liczba_zestawow.value,
+        preferencje_dietetyczne: form.preferencje_dietetyczne.value,
+      };
+
+      const response = await fetch("/api/orders", {
+        method: "POST",
+        headers: {"Content-Type": "application/json"},
+        body: JSON.stringify(data)
+      });
+
+      const result = await response.json();
+      alert("Zamówienie złożone! Status: " + result.status);
+      form.reset();
+    }
+
+    async function loadUsers() {
+      const res = await fetch("/api/users");
+      const users = await res.json();
+
+      const klientSelect = document.getElementById("klient_id");
+      const dostawcaSelect = document.getElementById("dostawca_id");
+
+      users.forEach(user => {
+        const option = new Option(user.imie + " " + user.nazwisko, user.id);
+        if (user.role.includes("klient")) klientSelect.appendChild(option.cloneNode(true));
+        if (user.role.includes("dostawca")) dostawcaSelect.appendChild(option.cloneNode(true));
+      });
+    }
+
+    window.onload = loadUsers;
+  </script>
+</head>
+<body>
+  <h1>Złóż zamówienie</h1>
+  <form onsubmit="submitOrder(event)">
+    <label>Klient:
+      <select id="klient_id" name="klient_id" required></select>
+    </label><br>
+
+    <label>Dostawca:
+      <select id="dostawca_id" name="dostawca_id" required></select>
+    </label><br>
+
+    <label>Data realizacji:
+      <input type="date" name="data_realizacji" required>
+    </label><br>
+
+    <label>Liczba zestawów:
+      <input type="number" name="liczba_zestawow" min="1" required>
+    </label><br>
+
+    <label>Preferencje dietetyczne:
+      <input type="text" name="preferencje_dietetyczne">
+    </label><br><br>
+
+    <button type="submit">Złóż zamówienie</button>
+  </form>
+</body>
+</html>

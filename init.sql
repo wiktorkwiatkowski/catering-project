@@ -83,9 +83,9 @@ INSERT INTO role (nazwa) VALUES ('klient'), ('administrator'), ('dostawca');
 
 -- Przykładowi użytkownicy
 INSERT INTO uzytkownicy (imie, nazwisko, email, haslo) VALUES
-('Jan', 'Kowalski', 'jan.kowalski@example.com', 'tajne1'),
-('Anna', 'Nowak', 'anna.nowak@example.com', 'tajne2'),
-('Piotr', 'Zielinski', 'piotr.zielinski@example.com', 'tajne3');
+('Jan', 'Kowalski', 'jan.kowalski@example.com', '%s'),
+('Anna', 'Nowak', 'anna.nowak@example.com', '%s'),
+('Piotr', 'Zielinski', 'piotr.zielinski@example.com', '%s');
 
 -- Przypisanie ról
 -- Jan to klient (id=1), Anna to dostawca (id=3), Piotr to administrator (id=2)

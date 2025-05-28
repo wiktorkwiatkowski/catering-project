@@ -8,6 +8,7 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Klucz do szyfrowania sesji
 
+# Połączenie z bazą danych
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost", user="root", password="root", database="catering"
@@ -34,9 +35,11 @@ def get_user_roles(user_id):
 # Główna strona
 @app.route("/")
 def index():
+    # Połączenie z bazą danych
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
+        # Pobranie pozycji z menu
         cursor.execute("SELECT * FROM pozycje_menu")
         items = cursor.fetchall()
     except mysql.connector.Error:
@@ -44,6 +47,7 @@ def index():
         items = []
         print("Uwaga: Tabela pozycje_menu nie została znaleziona.")
     conn.close()
+    # Przekazanie do szablonu 
     return render_template("index.html", menu=items)
 
 # Rejestracja

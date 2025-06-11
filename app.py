@@ -8,7 +8,6 @@ from datetime import datetime
 app = Flask(__name__)
 app.secret_key = os.urandom(24)  # Klucz do szyfrowania sesji
 
-# Połączenie z bazą danych
 def get_db_connection():
     return mysql.connector.connect(
         host="localhost", user="root", password="root", database="catering"
@@ -35,11 +34,9 @@ def get_user_roles(user_id):
 # Główna strona
 @app.route("/")
 def index():
-    # Połączenie z bazą danych
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
     try:
-        # Pobranie pozycji z menu
         cursor.execute("SELECT * FROM pozycje_menu")
         items = cursor.fetchall()
     except mysql.connector.Error:
@@ -47,7 +44,6 @@ def index():
         items = []
         print("Uwaga: Tabela pozycje_menu nie została znaleziona.")
     conn.close()
-    # Przekazanie do szablonu 
     return render_template("index.html", menu=items)
 
 # Rejestracja
@@ -183,6 +179,92 @@ def dashboard():
     conn.close()
     
     return render_template("dashboard.html", user=user, role=role, zamowienia=zamowienia, dostawy=dostawy)
+
+# Edycja profilu użytkownika
+@app.route("/profile/edit", methods=["GET", "POST"])
+def edit_profile():
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == "POST":
+        imie = request.form.get("imie")
+        nazwisko = request.form.get("nazwisko")
+        email = request.form.get("email")
+        nowe_haslo = request.form.get("nowe_haslo")
+        potwierdz_haslo = request.form.get("potwierdz_haslo")
+        obecne_haslo = request.form.get("obecne_haslo")
+        
+        # Pobierz obecne dane użytkownika
+        cursor.execute("SELECT * FROM uzytkownicy WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        
+        # Sprawdź obecne hasło
+        if not check_password_hash(user['haslo'], obecne_haslo):
+            conn.close()
+            return render_template("edit_profile.html", user=user, 
+                                 message="Niepoprawne obecne hasło", message_type="error")
+        
+        # Walidacja emaila
+        if email != user['email']:
+            if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
+                conn.close()
+                return render_template("edit_profile.html", user=user, 
+                                     message="Niepoprawny format adresu email", message_type="error")
+            
+            # Sprawdź, czy nowy email nie jest już zajęty
+            cursor.execute("SELECT id FROM uzytkownicy WHERE email = %s AND id != %s", (email, user_id))
+            if cursor.fetchone():
+                conn.close()
+                return render_template("edit_profile.html", user=user, 
+                                     message="Ten adres email jest już używany przez innego użytkownika", 
+                                     message_type="error")
+        
+        # Walidacja nowego hasła (jeśli zostało podane)
+        if nowe_haslo:
+            if len(nowe_haslo) < 6:
+                conn.close()
+                return render_template("edit_profile.html", user=user, 
+                                     message="Nowe hasło musi mieć co najmniej 6 znaków", message_type="error")
+            
+            if nowe_haslo != potwierdz_haslo:
+                conn.close()
+                return render_template("edit_profile.html", user=user, 
+                                     message="Nowe hasła nie są identyczne", message_type="error")
+            
+            # Aktualizuj hasło
+            hashed_password = generate_password_hash(nowe_haslo)
+            cursor.execute("""
+                UPDATE uzytkownicy 
+                SET imie = %s, nazwisko = %s, email = %s, haslo = %s 
+                WHERE id = %s
+            """, (imie, nazwisko, email, hashed_password, user_id))
+        else:
+            # Aktualizuj bez zmiany hasła
+            cursor.execute("""
+                UPDATE uzytkownicy 
+                SET imie = %s, nazwisko = %s, email = %s 
+                WHERE id = %s
+            """, (imie, nazwisko, email, user_id))
+        
+        conn.commit()
+        
+        # Zaktualizuj dane w sesji
+        session['user_name'] = f"{imie} {nazwisko}"
+        
+        conn.close()
+        return render_template("edit_profile.html", user={'imie': imie, 'nazwisko': nazwisko, 'email': email}, 
+                             message="Profil został pomyślnie zaktualizowany", message_type="success")
+    
+    # GET - wyświetl formularz edycji
+    cursor.execute("SELECT * FROM uzytkownicy WHERE id = %s", (user_id,))
+    user = cursor.fetchone()
+    conn.close()
+    
+    return render_template("edit_profile.html", user=user)
 
 @app.route("/api/orders", methods=["GET"])
 def get_orders():

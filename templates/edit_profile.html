@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="pl">
+<head>
+  <meta charset="UTF-8">
+  <title>Edycja profilu</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+  <style>
+    .container {
+      max-width: 500px;
+      margin: 50px auto;
+      padding: 20px;
+      border: 1px solid #ddd;
+      border-radius: 5px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.1);
+    }
+    
+    .form-group {
+      margin-bottom: 15px;
+    }
+    
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+    
+    label {
+      display: block;
+      margin-bottom: 5px;
+      font-weight: bold;
+    }
+    
+    input[type="text"], input[type="email"], input[type="password"] {
+      width: 100%;
+      padding: 8px;
+      border: 1px solid #ddd;
+      border-radius: 4px;
+      box-sizing: border-box;
+    }
+    
+    .password-section {
+      border-top: 1px solid #eee;
+      padding-top: 20px;
+      margin-top: 20px;
+    }
+    
+    .password-section h3 {
+      margin-top: 0;
+      color: #333;
+    }
+    
+    .password-help {
+      font-size: 0.9em;
+      color: #666;
+      margin-bottom: 10px;
+    }
+    
+    button {
+      background-color: #4CAF50;
+      color: white;
+      padding: 10px 20px;
+      border: none;
+      border-radius: 4px;
+      cursor: pointer;
+      margin-right: 10px;
+    }
+    
+    button:hover {
+      background-color: #45a049;
+    }
+    
+    .cancel-button {
+      background-color: #6c757d;
+    }
+    
+    .cancel-button:hover {
+      background-color: #5a6268;
+    }
+    
+    .message {
+      padding: 10px;
+      margin-bottom: 15px;
+      border-radius: 4px;
+    }
+    
+    .error {
+      background-color: #f8d7da;
+      color: #721c24;
+      border: 1px solid #f5c6cb;
+    }
+    
+    .success {
+      background-color: #d4edda;
+      color: #155724;
+      border: 1px solid #c3e6cb;
+    }
+    
+    .required {
+      color: red;
+    }
+    
+    .back-link {
+      margin-top: 15px;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <ul>
+        <li><a href="/">Strona główna</a></li>
+        <li><a href="/order">Złóż zamówienie</a></li>
+        <li><a href="/dashboard">Moje konto</a></li>
+        <li><a href="/logout">Wyloguj się</a></li>
+      </ul>
+    </nav>
+  </header>
+
+  <div class="container">
+    <h1>Edycja profilu</h1>
+    
+    {% if message %}
+    <div class="message {{ message_type }}">
+      {{ message }}
+    </div>
+    {% endif %}
+    
+    <form action="/profile/edit" method="POST">
+      <div class="form-row">
+        <div class="form-group">
+          <label for="imie">Imię <span class="required">*</span>:</label>
+          <input type="text" id="imie" name="imie" value="{{ user.imie }}" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="nazwisko">Nazwisko <span class="required">*</span>:</label>
+          <input type="text" id="nazwisko" name="nazwisko" value="{{ user.nazwisko }}" required>
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="email">Adres email <span class="required">*</span>:</label>
+        <input type="email" id="email" name="email" value="{{ user.email }}" required>
+      </div>
+      
+      <div class="password-section">
+        <h3>Zmiana hasła</h3>
+        <div class="password-help">
+          Pozostaw puste, jeśli nie chcesz zmieniać hasła. Nowe hasło musi mieć co najmniej 6 znaków.
+        </div>
+        
+        <div class="form-group">
+          <label for="nowe_haslo">Nowe hasło:</label>
+          <input type="password" id="nowe_haslo" name="nowe_haslo" minlength="6">
+        </div>
+        
+        <div class="form-group">
+          <label for="potwierdz_haslo">Potwierdź nowe hasło:</label>
+          <input type="password" id="potwierdz_haslo" name="potwierdz_haslo" minlength="6">
+        </div>
+      </div>
+      
+      <div class="form-group">
+        <label for="obecne_haslo">Obecne hasło <span class="required">*</span>:</label>
+        <input type="password" id="obecne_haslo" name="obecne_haslo" required>
+        <small style="color: #666;">Wymagane do potwierdzenia zmian</small>
+      </div>
+      
+      <div class="form-group">
+        <button type="submit">Zapisz zmiany</button>
+        <button type="button" class="cancel-button" onclick="window.location.href='/dashboard'">Anuluj</button>
+      </div>
+    </form>
+    
+    <div class="back-link">
+      <a href="/dashboard">← Powrót do panelu użytkownika</a>
+    </div>
+  </div>
+
+  <script>
+    // Walidacja hasła po stronie klienta
+    document.getElementById('potwierdz_haslo').addEventListener('input', function() {
+      const noweHaslo = document.getElementById('nowe_haslo').value;
+      const potwierdzHaslo = this.value;
+      
+      if (noweHaslo && potwierdzHaslo && noweHaslo !== potwierdzHaslo) {
+        this.setCustomValidity('Hasła muszą być identyczne');
+      } else {
+        this.setCustomValidity('');
+      }
+    });
+    
+    document.getElementById('nowe_haslo').addEventListener('input', function() {
+      const potwierdzHaslo = document.getElementById('potwierdz_haslo');
+      if (this.value && potwierdzHaslo.value && this.value !== potwierdzHaslo.value) {
+        potwierdzHaslo.setCustomValidity('Hasła muszą być identyczne');
+      } else {
+        potwierdzHaslo.setCustomValidity('');
+      }
+    });
+  </script>
+</body>
+</html>

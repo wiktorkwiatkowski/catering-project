@@ -2,7 +2,7 @@
 <html lang="pl">
 <head>
   <meta charset="UTF-8" />
-  <title>System Cateringowy</title>
+  <title>Menu - {{ opcja.dieta }}</title>
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
 </head>
 <body>
@@ -23,25 +23,24 @@
   </header>
 
   <div class="container">
-    <h1>Witaj w Systemie Cateringowym</h1>
-    
-    {% if session.user_id %}
-      <p>Jesteś zalogowany jako: {{ session.user_name }}</p>
-    {% else %}
-      <p>Zaloguj się, aby korzystać z pełni funkcjonalności systemu.</p>
-    {% endif %}
-    
-    <div class="menu-section">
-      <h2>Wybierz opcję dietetyczną:</h2>
-      <div class="menu-items">
-        {% for opcja in opcje %}
-        <div class="menu-item">
-          <h3>{{ opcja.dieta }}</h3>
-          <p>{{ opcja.opis }}</p>
-          <a href="{{ url_for('show_menu_for_option', opcja_id=opcja.id) }}" class="button">Zobacz menu</a>
-        </div>
-        {% endfor %}
+    <h1>Menu - {{ opcja.dieta }}</h1>
+    <p>{{ opcja.opis }}</p>
+
+    <div class="menu-items">
+      {% for item in menu %}
+      <div class="menu-item">
+        <h3>{{ item.nazwa }}</h3>
+        <p>Typ: {{ item.typ }}</p>
+        <p>Cena: {{ item.cena }} zł</p>
+        {% if session.user_id %}
+          <a href="/order" class="button">Zamów</a>
+        {% else %}
+          <a href="/login" class="button">Zaloguj się, aby zamówić</a>
+        {% endif %}
       </div>
+      {% else %}
+      <p>Brak pozycji w menu dla tej opcji dietetycznej.</p>
+      {% endfor %}
     </div>
   </div>
 </body>

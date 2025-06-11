@@ -23,11 +23,12 @@
       margin-bottom: 5px;
     }
     
-    input[type="text"], input[type="email"], input[type="password"], select {
+    input[type="text"], input[type="email"], input[type="password"] {
       width: 100%;
       padding: 8px;
       border: 1px solid #ddd;
       border-radius: 4px;
+      box-sizing: border-box; 
     }
     
     button {
@@ -93,11 +94,13 @@
       </div>
       
       <div class="form-group">
-        <label for="rola">Rola:</label>
-        <select id="rola" name="rola" required>
-          <option value="1">Klient</option>
-          <option value="3">Dostawca</option>
-        </select>
+        <label for="telefon">Telefon:</label>
+        <input type="text" id="telefon" name="telefon" required>
+      </div>
+      
+      <div class="form-group">
+        <label for="adres">Adres:</label>
+        <input type="text" id="adres" name="adres" required>
       </div>
       
       <button type="submit">Zarejestruj się</button>

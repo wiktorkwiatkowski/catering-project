@@ -73,11 +73,10 @@
         <div class="user-details">
           <h2>{{ user.imie }} {{ user.nazwisko }}</h2>
           <p><strong>Email:</strong> {{ user.email }}</p>
-          <p><strong>Role:</strong> 
-            {% for rola in role %}
-              {{ rola }}{% if not loop.last %}, {% endif %}
-            {% endfor %}
-          </p>
+          <p><strong>Rola:</strong> {{ role }}</p>
+          <p><strong>Telefon:</strong> {{ user.numer_telefonu }}</p>
+          <p><strong>Adres:</strong> {{ user.adres }}</p>
+
         </div>
         <div class="profile-actions">
           <a href="/profile/edit" class="edit-profile-btn">Edytuj profil</a>

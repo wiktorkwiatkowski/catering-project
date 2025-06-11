@@ -17,34 +17,30 @@ def get_db_connection():
 def is_logged_in():
     return 'user_id' in session
 
-# Funkcja pomocnicza do pobierania ról użytkownika
-def get_user_roles(user_id):
+# Funkcja pomocnicza do pobierania roli użytkownika (ENUM)
+def get_user_role(user_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT r.nazwa
-        FROM uzytkownicy_role ur
-        JOIN role r ON ur.rola_id = r.id
-        WHERE ur.uzytkownik_id = %s
-    """, (user_id,))
-    roles = cursor.fetchall()
+    cursor.execute("SELECT rola FROM uzytkownik WHERE id = %s", (user_id,))
+    result = cursor.fetchone()
     conn.close()
-    return [role['nazwa'] for role in roles]
+    if result:
+        return result['rola']
+    else:
+        return None
 
 # Główna strona
 @app.route("/")
 def index():
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
-    try:
-        cursor.execute("SELECT * FROM pozycje_menu")
-        items = cursor.fetchall()
-    except mysql.connector.Error:
-        # Próbujemy inną nazwę tabeli jeśli pierwsza nie istnieje
-        items = []
-        print("Uwaga: Tabela pozycje_menu nie została znaleziona.")
+
+    # Pobierz dostępne opcje dietetyczne
+    cursor.execute("SELECT * FROM opcja_dietetyczna")
+    opcje = cursor.fetchall()
+
     conn.close()
-    return render_template("index.html", menu=items)
+    return render_template("index.html", opcje=opcje)
 
 # Rejestracja
 @app.route("/register", methods=["GET", "POST"])
@@ -54,7 +50,8 @@ def register():
         nazwisko = request.form.get("nazwisko")
         email = request.form.get("email")
         haslo = request.form.get("haslo")
-        rola_id = request.form.get("rola")
+        telefon = request.form.get("telefon")
+        adres = request.form.get("adres")
         
         # Walidacja emaila
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -64,7 +61,7 @@ def register():
         cursor = conn.cursor()
         
         # Sprawdzenie, czy email już istnieje
-        cursor.execute("SELECT id FROM uzytkownicy WHERE email = %s", (email,))
+        cursor.execute("SELECT id FROM uzytkownik WHERE email = %s", (email,))
         if cursor.fetchone():
             conn.close()
             return render_template("register.html", message="Email jest już zajęty", message_type="error")
@@ -72,21 +69,11 @@ def register():
         # Hashowanie hasła
         hashed_password = generate_password_hash(haslo)
         
-        # Dodanie użytkownika
+        # Dodanie użytkownika → rola zawsze 'Klient'
         cursor.execute("""
-            INSERT INTO uzytkownicy (imie, nazwisko, email, haslo)
-            VALUES (%s, %s, %s, %s)
-        """, (imie, nazwisko, email, hashed_password))
-        conn.commit()
-        
-        # Pobranie ID nowego użytkownika
-        user_id = cursor.lastrowid
-        
-        # Dodanie roli użytkownika
-        cursor.execute("""
-            INSERT INTO uzytkownicy_role (uzytkownik_id, rola_id)
-            VALUES (%s, %s)
-        """, (user_id, rola_id))
+            INSERT INTO uzytkownik (rola, imie, nazwisko, email, haslo, numer_telefonu, adres)
+            VALUES (%s, %s, %s, %s, %s, %s, %s)
+        """, ('Klient', imie, nazwisko, email, hashed_password, telefon, adres))
         conn.commit()
         
         conn.close()
@@ -94,6 +81,7 @@ def register():
         return redirect(url_for('login', registered=True))
     
     return render_template("register.html")
+
 
 # Logowanie
 @app.route("/login", methods=["GET", "POST"])
@@ -106,7 +94,7 @@ def login():
         cursor = conn.cursor(dictionary=True)
         
         # Pobierz użytkownika po emailu
-        cursor.execute("SELECT * FROM uzytkownicy WHERE email = %s", (email,))
+        cursor.execute("SELECT * FROM uzytkownik WHERE email = %s", (email,))
         user = cursor.fetchone()
         
         if not user or not check_password_hash(user['haslo'], haslo):
@@ -116,10 +104,7 @@ def login():
         # Jeśli dane są poprawne, zaloguj użytkownika
         session['user_id'] = user['id']
         session['user_name'] = f"{user['imie']} {user['nazwisko']}"
-        
-        # Pobierz role użytkownika
-        roles = get_user_roles(user['id'])
-        session['user_roles'] = roles
+        session['user_role'] = get_user_role(user['id'])
         
         conn.close()
         return redirect(url_for('dashboard'))
@@ -148,31 +133,31 @@ def dashboard():
     cursor = conn.cursor(dictionary=True)
     
     # Pobierz dane użytkownika
-    cursor.execute("SELECT * FROM uzytkownicy WHERE id = %s", (user_id,))
+    cursor.execute("SELECT * FROM uzytkownik WHERE id = %s", (user_id,))
     user = cursor.fetchone()
     
     # Pobierz role użytkownika
-    role = get_user_roles(user_id)
+    role = get_user_role(user_id)
     
     # Pobierz zamówienia użytkownika (jeśli jest klientem)
     zamowienia = []
-    if 'klient' in role:
+    if role == 'Klient':
         cursor.execute("""
-            SELECT * FROM zamowienia
-            WHERE klient_id = %s
-            ORDER BY data_realizacji DESC
+            SELECT * FROM zamowienie
+            WHERE uzytkownik_id = %s
+            ORDER BY data_dostawy DESC
         """, (user_id,))
         zamowienia = cursor.fetchall()
     
     # Pobierz dostawy (jeśli jest dostawcą)
     dostawy = []
-    if 'dostawca' in role:
+    if role == 'Dostawca':
         cursor.execute("""
             SELECT z.*, kl.imie as klient_imie, kl.nazwisko as klient_nazwisko
-            FROM zamowienia z
-            JOIN uzytkownicy kl ON z.klient_id = kl.id
+            FROM zamowienie z
+            JOIN uzytkownik kl ON z.uzytkownik_id = kl.id
             WHERE z.dostawca_id = %s
-            ORDER BY z.data_realizacji DESC
+            ORDER BY z.data_dostawy DESC
         """, (user_id,))
         dostawy = cursor.fetchall()
     
@@ -193,13 +178,15 @@ def edit_profile():
     if request.method == "POST":
         imie = request.form.get("imie")
         nazwisko = request.form.get("nazwisko")
+        telefon = request.form.get("telefon")
+        adres = request.form.get("adres")
         email = request.form.get("email")
         nowe_haslo = request.form.get("nowe_haslo")
         potwierdz_haslo = request.form.get("potwierdz_haslo")
         obecne_haslo = request.form.get("obecne_haslo")
         
         # Pobierz obecne dane użytkownika
-        cursor.execute("SELECT * FROM uzytkownicy WHERE id = %s", (user_id,))
+        cursor.execute("SELECT * FROM uzytkownik WHERE id = %s", (user_id,))
         user = cursor.fetchone()
         
         # Sprawdź obecne hasło
@@ -216,7 +203,7 @@ def edit_profile():
                                      message="Niepoprawny format adresu email", message_type="error")
             
             # Sprawdź, czy nowy email nie jest już zajęty
-            cursor.execute("SELECT id FROM uzytkownicy WHERE email = %s AND id != %s", (email, user_id))
+            cursor.execute("SELECT id FROM uzytkownik WHERE email = %s AND id != %s", (email, user_id))
             if cursor.fetchone():
                 conn.close()
                 return render_template("edit_profile.html", user=user, 
@@ -235,20 +222,20 @@ def edit_profile():
                 return render_template("edit_profile.html", user=user, 
                                      message="Nowe hasła nie są identyczne", message_type="error")
             
-            # Aktualizuj hasło
+            # Aktualizuj hasło + telefon + adres
             hashed_password = generate_password_hash(nowe_haslo)
             cursor.execute("""
-                UPDATE uzytkownicy 
-                SET imie = %s, nazwisko = %s, email = %s, haslo = %s 
+                UPDATE uzytkownik 
+                SET imie = %s, nazwisko = %s, email = %s, haslo = %s, numer_telefonu = %s, adres = %s
                 WHERE id = %s
-            """, (imie, nazwisko, email, hashed_password, user_id))
+            """, (imie, nazwisko, email, hashed_password, telefon, adres, user_id))
         else:
-            # Aktualizuj bez zmiany hasła
+            # Aktualizuj bez zmiany hasła, ale z telefonem i adresem
             cursor.execute("""
-                UPDATE uzytkownicy 
-                SET imie = %s, nazwisko = %s, email = %s 
+                UPDATE uzytkownik 
+                SET imie = %s, nazwisko = %s, email = %s, numer_telefonu = %s, adres = %s
                 WHERE id = %s
-            """, (imie, nazwisko, email, user_id))
+            """, (imie, nazwisko, email, telefon, adres, user_id))
         
         conn.commit()
         
@@ -256,77 +243,47 @@ def edit_profile():
         session['user_name'] = f"{imie} {nazwisko}"
         
         conn.close()
-        return render_template("edit_profile.html", user={'imie': imie, 'nazwisko': nazwisko, 'email': email}, 
-                             message="Profil został pomyślnie zaktualizowany", message_type="success")
+        return render_template("edit_profile.html", user={
+            'imie': imie,
+            'nazwisko': nazwisko,
+            'email': email,
+            'numer_telefonu': telefon,
+            'adres': adres
+        }, message="Profil został pomyślnie zaktualizowany", message_type="success")
     
     # GET - wyświetl formularz edycji
-    cursor.execute("SELECT * FROM uzytkownicy WHERE id = %s", (user_id,))
+    cursor.execute("SELECT * FROM uzytkownik WHERE id = %s", (user_id,))
     user = cursor.fetchone()
     conn.close()
     
     return render_template("edit_profile.html", user=user)
 
-@app.route("/api/orders", methods=["GET"])
-def get_orders():
+
+# Wyświetlenie menu dla opcji dietetycznej
+@app.route("/menu/<int:opcja_id>")
+def show_menu_for_option(opcja_id):
     conn = get_db_connection()
     cursor = conn.cursor(dictionary=True)
+
+    # Pobierz nazwę opcji dietetycznej
+    cursor.execute("SELECT dieta, opis FROM opcja_dietetyczna WHERE id = %s", (opcja_id,))
+    opcja = cursor.fetchone()
+
+    if not opcja:
+        conn.close()
+        return "Opcja dietetyczna nie istnieje", 404
+
+    # Pobierz pozycje menu powiązane z tą opcją dietetyczną (przez tabela `menu`)
     cursor.execute("""
-        SELECT 
-            z.id, z.data_realizacji, z.liczba_zestawow, z.preferencje_dietetyczne,
-            kl.imie AS klient_imie, kl.nazwisko AS klient_nazwisko,
-            ds.imie AS dostawca_imie, ds.nazwisko AS dostawca_nazwisko
-        FROM zamowienia z
-        LEFT JOIN uzytkownicy kl ON z.klient_id = kl.id
-        LEFT JOIN uzytkownicy ds ON z.dostawca_id = ds.id
-    """)
-    orders = cursor.fetchall()
+        SELECT pm.* 
+        FROM pozycje_menu pm
+        JOIN menu m ON pm.menu_id = m.id
+        WHERE m.opcja_dietetyczna_id = %s
+    """, (opcja_id,))
+    items = cursor.fetchall()
+
     conn.close()
-    return jsonify(orders)
-
-@app.route("/api/orders", methods=["POST"])
-def create_order():
-    if not is_logged_in():
-        return jsonify({"error": "Nie jesteś zalogowany"}), 401
-    
-    data = request.json
-    klient_id = data.get("klient_id")
-    dostawca_id = data.get("dostawca_id")
-    data_realizacji = data.get("data_realizacji")
-    liczba_zestawow = data.get("liczba_zestawow")
-    preferencje_dietetyczne = data.get("preferencje_dietetyczne", "")
-
-    conn = get_db_connection()
-    cursor = conn.cursor()
-    cursor.execute("""
-        INSERT INTO zamowienia (klient_id, dostawca_id, data_realizacji, liczba_zestawow, preferencje_dietetyczne)
-        VALUES (%s, %s, %s, %s, %s)
-    """, (klient_id, dostawca_id, data_realizacji, liczba_zestawow, preferencje_dietetyczne))
-    conn.commit()
-    conn.close()
-    return jsonify({"status": "success"}), 201
-
-@app.route("/order")
-def order_page():
-    if not is_logged_in():
-        return redirect(url_for('login'))
-    return render_template("order.html")
-
-# API: zwraca listę użytkowników wraz z rolami (potrzebne do formularza)
-@app.route("/api/users")
-def get_users():
-    conn = get_db_connection()
-    cursor = conn.cursor(dictionary=True)
-    cursor.execute("""
-        SELECT u.id, u.imie, u.nazwisko,
-            GROUP_CONCAT(r.nazwa) AS role
-        FROM uzytkownicy u
-        JOIN uzytkownicy_role ur ON u.id = ur.uzytkownik_id
-        JOIN role r ON ur.rola_id = r.id
-        GROUP BY u.id
-    """)
-    users = cursor.fetchall()
-    conn.close()
-    return jsonify(users)
+    return render_template("menu.html", opcja=opcja, menu=items)
 
 # Start aplikacji
 if __name__ == "__main__":

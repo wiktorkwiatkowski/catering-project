@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
     .container {
-      max-width: 400px;
+      max-width: 500px;
       margin: 50px auto;
       padding: 20px;
       border: 1px solid #ddd;
@@ -18,9 +18,23 @@
       margin-bottom: 15px;
     }
     
+    .form-row {
+      display: flex;
+      gap: 10px;
+    }
+    
+    .form-row .form-group {
+      flex: 1;
+    }
+    
+    .form-row .form-group.narrow {
+      flex: 0.6;
+    }
+    
     label {
       display: block;
       margin-bottom: 5px;
+      font-weight: bold;
     }
     
     input[type="text"], input[type="email"], input[type="password"] {
@@ -38,6 +52,11 @@
       border: none;
       border-radius: 4px;
       cursor: pointer;
+      width: 100%;
+    }
+    
+    button:hover {
+      background-color: #45a049;
     }
     
     .login-link {
@@ -60,6 +79,21 @@
       background-color: #d4edda;
       color: #155724;
     }
+    
+    .address-section {
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+    }
+    
+    .section-title {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 1.1em;
+    }
   </style>
 </head>
 <body>
@@ -73,14 +107,16 @@
     {% endif %}
     
     <form action="/register" method="POST">
-      <div class="form-group">
-        <label for="imie">Imię:</label>
-        <input type="text" id="imie" name="imie" required>
-      </div>
-      
-      <div class="form-group">
-        <label for="nazwisko">Nazwisko:</label>
-        <input type="text" id="nazwisko" name="nazwisko" required>
+      <div class="form-row">
+        <div class="form-group">
+          <label for="imie">Imię:</label>
+          <input type="text" id="imie" name="imie" required>
+        </div>
+        
+        <div class="form-group">
+          <label for="nazwisko">Nazwisko:</label>
+          <input type="text" id="nazwisko" name="nazwisko" required>
+        </div>
       </div>
       
       <div class="form-group">
@@ -90,7 +126,7 @@
       
       <div class="form-group">
         <label for="haslo">Hasło:</label>
-        <input type="password" id="haslo" name="haslo" required>
+        <input type="password" id="haslo" name="haslo" required minlength="6">
       </div>
       
       <div class="form-group">
@@ -98,9 +134,31 @@
         <input type="text" id="telefon" name="telefon" required>
       </div>
       
-      <div class="form-group">
-        <label for="adres">Adres:</label>
-        <input type="text" id="adres" name="adres" required>
+      <div class="address-section">
+        <h3 class="section-title">Adres zamieszkania</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="miejscowosc">Miejscowość:</label>
+            <input type="text" id="miejscowosc" name="miejscowosc" required>
+          </div>
+          
+          <div class="form-group narrow">
+            <label for="kod_pocztowy">Kod pocztowy:</label>
+            <input type="text" id="kod_pocztowy" name="kod_pocztowy" required 
+                   pattern="[0-9]{2}-[0-9]{3}" placeholder="XX-XXX">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="nr_domu">Numer domu/mieszkania:</label>
+          <input type="text" id="nr_domu" name="nr_domu" required placeholder="np. 15, 15/2, 15A">
+        </div>
+        
+        <div class="form-group">
+          <label for="adres">Ulica:</label>
+          <input type="text" id="adres" name="adres" required placeholder="np. ul. Kwiatowa">
+        </div>
       </div>
       
       <button type="submit">Zarejestruj się</button>
@@ -114,5 +172,18 @@
       <a href="/">Powrót do strony głównej</a>
     </div>
   </div>
+
+  <script>
+    // Walidacja kodu pocztowego
+    document.getElementById('kod_pocztowy').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, ''); // Usuń wszystko oprócz cyfr
+      
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '-' + value.substring(2, 5);
+      }
+      
+      e.target.value = value;
+    });
+  </script>
 </body>
 </html>

@@ -6,7 +6,7 @@
   <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
   <style>
     .container {
-      max-width: 500px;
+      max-width: 600px;
       margin: 50px auto;
       padding: 20px;
       border: 1px solid #ddd;
@@ -27,6 +27,10 @@
       flex: 1;
     }
     
+    .form-row .form-group.narrow {
+      flex: 0.6;
+    }
+    
     label {
       display: block;
       margin-bottom: 5px;
@@ -45,6 +49,21 @@
       border-top: 1px solid #eee;
       padding-top: 20px;
       margin-top: 20px;
+    }
+    
+    .address-section {
+      border: 1px solid #e0e0e0;
+      border-radius: 5px;
+      padding: 15px;
+      margin-bottom: 15px;
+      background-color: #f9f9f9;
+    }
+    
+    .section-title {
+      margin-top: 0;
+      margin-bottom: 15px;
+      color: #333;
+      font-size: 1.1em;
     }
     
     .password-section h3 {
@@ -152,10 +171,34 @@
         <input type="text" id="telefon" name="telefon" value="{{ user.numer_telefonu }}" required>
       </div>
       
-      <div class="form-group">
-        <label for="adres">Adres <span class="required">*</span>:</label>
-        <input type="text" id="adres" name="adres" value="{{ user.adres }}" required>
-      </div>      
+      <div class="address-section">
+        <h3 class="section-title">Adres zamieszkania</h3>
+        
+        <div class="form-row">
+          <div class="form-group">
+            <label for="miejscowosc">Miejscowość <span class="required">*</span>:</label>
+            <input type="text" id="miejscowosc" name="miejscowosc" value="{{ user.miejscowosc or '' }}" required>
+          </div>
+          
+          <div class="form-group narrow">
+            <label for="kod_pocztowy">Kod pocztowy <span class="required">*</span>:</label>
+            <input type="text" id="kod_pocztowy" name="kod_pocztowy" value="{{ user.kod_pocztowy or '' }}" 
+                   required pattern="[0-9]{2}-[0-9]{3}" placeholder="XX-XXX">
+          </div>
+        </div>
+        
+        <div class="form-group">
+          <label for="nr_domu">Numer domu/mieszkania <span class="required">*</span>:</label>
+          <input type="text" id="nr_domu" name="nr_domu" value="{{ user.nr_domu or '' }}" 
+                 required placeholder="np. 15, 15/2, 15A">
+        </div>
+        
+        <div class="form-group">
+          <label for="adres">Ulica <span class="required">*</span>:</label>
+          <input type="text" id="adres" name="adres" value="{{ user.adres or '' }}" 
+                 required placeholder="np. ul. Kwiatowa">
+        </div>
+      </div>
 
       <div class="password-section">
         <h3>Zmiana hasła</h3>
@@ -192,6 +235,17 @@
   </div>
 
   <script>
+    // Walidacja kodu pocztowego
+    document.getElementById('kod_pocztowy').addEventListener('input', function(e) {
+      let value = e.target.value.replace(/\D/g, ''); // Usuń wszystko oprócz cyfr
+      
+      if (value.length >= 2) {
+        value = value.substring(0, 2) + '-' + value.substring(2, 5);
+      }
+      
+      e.target.value = value;
+    });
+
     // Walidacja hasła po stronie klienta
     document.getElementById('potwierdz_haslo').addEventListener('input', function() {
       const noweHaslo = document.getElementById('nowe_haslo').value;

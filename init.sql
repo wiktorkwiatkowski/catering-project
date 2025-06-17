@@ -149,3 +149,40 @@ INSERT INTO zamowienie_pozycje (zamowienie_id, pozycja_menu_id) VALUES
 -- Ocena
 INSERT INTO ocena (zamowienie_id, liczba_gwiazdek) VALUES
 (1, 5);
+
+USE catering;
+
+-- Dodaj nowe kolumny do tabeli uzytkownik
+ALTER TABLE uzytkownik 
+ADD COLUMN miejscowosc VARCHAR(100) AFTER adres,
+ADD COLUMN kod_pocztowy VARCHAR(10) AFTER miejscowosc,
+ADD COLUMN nr_domu VARCHAR(20) AFTER kod_pocztowy;
+
+-- Dodaj nowe kolumny do tabeli zamowienie (jeśli potrzebujesz szczegółowego adresu dostawy)
+ALTER TABLE zamowienie 
+ADD COLUMN miejscowosc_dostawy VARCHAR(100) AFTER adres,
+ADD COLUMN kod_pocztowy_dostawy VARCHAR(10) AFTER miejscowosc_dostawy,
+ADD COLUMN nr_domu_dostawy VARCHAR(20) AFTER kod_pocztowy_dostawy;
+
+-- Opcjonalnie: możesz usunąć stare kolumny adres po przeniesieniu danych
+-- ALTER TABLE uzytkownik DROP COLUMN adres;
+-- ALTER TABLE zamowienie DROP COLUMN adres;
+
+-- Aktualizacja przykładowych danych
+UPDATE uzytkownik SET 
+    miejscowosc = 'Wrocław',
+    kod_pocztowy = '50-001',
+    nr_domu = '5'
+WHERE email = 'jan.kowalski@example.com';
+
+UPDATE uzytkownik SET 
+    miejscowosc = 'Kraków',
+    kod_pocztowy = '30-001',
+    nr_domu = '10'
+WHERE email = 'anna.nowak@example.com';
+
+UPDATE uzytkownik SET 
+    miejscowosc = 'Warszawa',
+    kod_pocztowy = '00-001',
+    nr_domu = '3'
+WHERE email = 'piotr.zielinski@example.com';

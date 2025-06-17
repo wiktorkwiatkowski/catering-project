@@ -52,6 +52,13 @@ def register():
         haslo = request.form.get("haslo")
         telefon = request.form.get("telefon")
         adres = request.form.get("adres")
+        miejscowosc = request.form.get("miejscowosc")
+        kod_pocztowy = request.form.get("kod_pocztowy")
+        nr_domu = request.form.get("nr_domu")
+
+        # Walidacja kodu pocztowego
+        if not re.match(r"^\d{2}-\d{3}$", kod_pocztowy):
+            return render_template("register.html", message="Niepoprawny format kodu pocztowego (wymagany format: XX-XXX)", message_type="error")
         
         # Walidacja emaila
         if not re.match(r"[^@]+@[^@]+\.[^@]+", email):
@@ -71,9 +78,9 @@ def register():
         
         # Dodanie użytkownika → rola zawsze 'Klient'
         cursor.execute("""
-            INSERT INTO uzytkownik (rola, imie, nazwisko, email, haslo, numer_telefonu, adres)
-            VALUES (%s, %s, %s, %s, %s, %s, %s)
-        """, ('Klient', imie, nazwisko, email, hashed_password, telefon, adres))
+        INSERT INTO uzytkownik (rola, imie, nazwisko, email, haslo, numer_telefonu, adres, miejscowosc, kod_pocztowy, nr_domu)
+        VALUES (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
+        """, ('Klient', imie, nazwisko, email, hashed_password, telefon, adres, miejscowosc, kod_pocztowy, nr_domu))
         conn.commit()
         
         conn.close()
@@ -180,6 +187,9 @@ def edit_profile():
         nazwisko = request.form.get("nazwisko")
         telefon = request.form.get("telefon")
         adres = request.form.get("adres")
+        miejscowosc = request.form.get("miejscowosc")
+        kod_pocztowy = request.form.get("kod_pocztowy")
+        nr_domu = request.form.get("nr_domu")
         email = request.form.get("email")
         nowe_haslo = request.form.get("nowe_haslo")
         potwierdz_haslo = request.form.get("potwierdz_haslo")
@@ -209,7 +219,15 @@ def edit_profile():
                 return render_template("edit_profile.html", user=user, 
                                      message="Ten adres email jest już używany przez innego użytkownika", 
                                      message_type="error")
-        
+        # Walidacja kodu pocztowego
+        if not re.match(r"^\d{2}-\d{3}$", kod_pocztowy):
+            cursor.execute("SELECT * FROM uzytkownik WHERE id = %s", (user_id,))
+            user = cursor.fetchone()
+            conn.close()
+            return render_template("edit_profile.html", user=user, 
+                                        message="Niepoprawny format kodu pocztowego (wymagany format: XX-XXX)", message_type="error")
+
+
         # Walidacja nowego hasła (jeśli zostało podane)
         if nowe_haslo:
             if len(nowe_haslo) < 6:
@@ -226,16 +244,16 @@ def edit_profile():
             hashed_password = generate_password_hash(nowe_haslo)
             cursor.execute("""
                 UPDATE uzytkownik 
-                SET imie = %s, nazwisko = %s, email = %s, haslo = %s, numer_telefonu = %s, adres = %s
+                SET imie = %s, nazwisko = %s, email = %s, haslo = %s, numer_telefonu = %s, adres = %s, miejscowosc = %s, kod_pocztowy = %s, nr_domu = %s
                 WHERE id = %s
-            """, (imie, nazwisko, email, hashed_password, telefon, adres, user_id))
+            """, (imie, nazwisko, email, hashed_password, telefon, adres, miejscowosc, kod_pocztowy, nr_domu, user_id))
         else:
             # Aktualizuj bez zmiany hasła, ale z telefonem i adresem
             cursor.execute("""
                 UPDATE uzytkownik 
-                SET imie = %s, nazwisko = %s, email = %s, numer_telefonu = %s, adres = %s
+                SET imie = %s, nazwisko = %s, email = %s, numer_telefonu = %s, adres = %s, miejscowosc = %s, kod_pocztowy = %s, nr_domu = %s
                 WHERE id = %s
-            """, (imie, nazwisko, email, telefon, adres, user_id))
+            """, (imie, nazwisko, email, telefon, adres, miejscowosc, kod_pocztowy, nr_domu, user_id))
         
         conn.commit()
         
@@ -248,7 +266,10 @@ def edit_profile():
             'nazwisko': nazwisko,
             'email': email,
             'numer_telefonu': telefon,
-            'adres': adres
+            'adres': adres,
+            'miejscowosc': miejscowosc,
+            'kod_pocztowy': kod_pocztowy,
+            'nr_domu': nr_domu
         }, message="Profil został pomyślnie zaktualizowany", message_type="success")
     
     # GET - wyświetl formularz edycji

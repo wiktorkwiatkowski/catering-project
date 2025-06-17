@@ -306,6 +306,97 @@ def show_menu_for_option(opcja_id):
     conn.close()
     return render_template("menu.html", opcja=opcja, menu=items)
 
+# Składanie zamówienia
+@app.route("/order", methods=["GET", "POST"])
+def order():
+    if not is_logged_in():
+        return redirect(url_for('login'))
+    
+    if session.get('user_role') != 'Klient':
+        flash('Tylko klienci mogą składać zamówienia')
+        return redirect(url_for('dashboard'))
+    
+    user_id = session['user_id']
+    conn = get_db_connection()
+    cursor = conn.cursor(dictionary=True)
+    
+    if request.method == "POST":
+        # Pobierz dane z formularza
+        pozycje = []
+        for key, value in request.form.items():
+            if key.startswith('pozycja_') and int(value) > 0:
+                pozycja_id = int(key.split('_')[1])
+                ilosc = int(value)
+                pozycje.append((pozycja_id, ilosc))
+        
+        if not pozycje:
+            flash('Musisz wybrać przynajmniej jedną pozycję')
+            return redirect(url_for('order'))
+        
+        # Pobierz dane użytkownika (adres dostawy)
+        cursor.execute("SELECT * FROM uzytkownik WHERE id = %s", (user_id,))
+        user = cursor.fetchone()
+        
+        # Pobierz pierwszego dostępnego dostawcę
+        cursor.execute("SELECT id FROM dostawca LIMIT 1")
+        dostawca = cursor.fetchone()
+        
+        if not dostawca:
+            flash('Brak dostępnych dostawców')
+            return redirect(url_for('order'))
+        
+        # Utwórz zamówienie
+        import random
+        kod_unikalny = random.randint(1000, 9999)
+        
+        cursor.execute("""
+            INSERT INTO zamowienie (uzytkownik_id, dostawca_id, data_dostawy, 
+                                  adres, miejscowosc_dostawy, kod_pocztowy_dostawy, 
+                                  nr_domu_dostawy, ilosc, kod_unikalny, status)
+            VALUES (%s, %s, CURDATE(), %s, %s, %s, %s, %s, %s, %s)
+        """, (user_id, dostawca['id'], user['adres'], user['miejscowosc'], 
+              user['kod_pocztowy'], user['nr_domu'], 1, kod_unikalny, True))
+        
+        zamowienie_id = cursor.lastrowid
+        
+        # Dodaj pozycje do zamówienia
+        for pozycja_id, ilosc in pozycje:
+            for _ in range(ilosc):
+                cursor.execute("""
+                    INSERT INTO zamowienie_pozycje (zamowienie_id, pozycja_menu_id)
+                    VALUES (%s, %s)
+                """, (zamowienie_id, pozycja_id))
+        
+        conn.commit()
+        conn.close()
+        
+        flash(f'Zamówienie złożone pomyślnie! Kod zamówienia: {kod_unikalny}. Status: Gotowe do odbioru')
+        return redirect(url_for('dashboard'))
+    
+    # GET - wyświetl formularz zamówienia
+    # Pobierz wszystkie pozycje menu pogrupowane według opcji dietetycznych
+    cursor.execute("""
+        SELECT od.dieta, od.opis as dieta_opis, pm.id, pm.nazwa, pm.typ, pm.cena
+        FROM pozycje_menu pm
+        JOIN menu m ON pm.menu_id = m.id
+        JOIN opcja_dietetyczna od ON m.opcja_dietetyczna_id = od.id
+        ORDER BY od.dieta, pm.typ, pm.nazwa
+    """)
+    pozycje = cursor.fetchall()
+    
+    # Pogrupuj pozycje według diet
+    menu_by_diet = {}
+    for pozycja in pozycje:
+        dieta = pozycja['dieta']
+        if dieta not in menu_by_diet:
+            menu_by_diet[dieta] = {
+                'opis': pozycja['dieta_opis'],
+                'pozycje': []
+            }
+        menu_by_diet[dieta]['pozycje'].append(pozycja)
+    
+    conn.close()
+    return render_template("order_form.html", menu_by_diet=menu_by_diet)
 # Start aplikacji
 if __name__ == "__main__":
     app.run(debug=True)

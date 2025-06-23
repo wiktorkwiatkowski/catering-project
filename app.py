@@ -157,7 +157,7 @@ def dashboard():
         ORDER BY z.data_dostawy DESC
     """, (user_id,))
     zamowienia = cursor.fetchall()
-    
+
     # Pobierz pozycje do każdego zamówienia
     for zam in zamowienia:
         cursor.execute("""
@@ -167,7 +167,7 @@ def dashboard():
             WHERE zp.zamowienie_id = %s
         """, (zam['id'],))
         zam['pozycje'] = cursor.fetchall()
-        
+
     # Pobierz dostawy (jeśli jest dostawcą)
     dostawy = []
     if role == 'Dostawca':
@@ -409,6 +409,21 @@ def order():
     
     conn.close()
     return render_template("order_form.html", menu_by_diet=menu_by_diet)
+
+# Strona "O nas"
+@app.route("/about")
+def about():
+    return render_template("about.html")
+
+# Strona "Kontakt"
+@app.route('/contact', methods=['GET', 'POST'])
+def contact():
+    if request.method == 'POST':
+
+        return render_template('contact.html', success=True)
+    
+    return render_template('contact.html')
+
 # Start aplikacji
 if __name__ == "__main__":
     app.run(debug=True)

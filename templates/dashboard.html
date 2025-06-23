@@ -67,9 +67,15 @@
     <nav>
       <ul>
         <li><a href="/">Strona główna</a></li>
-        <li><a href="/order">Złóż zamówienie</a></li>
+        {% if session.user_id %}
         <li><a href="/dashboard">Moje konto</a></li>
         <li><a href="/logout">Wyloguj się</a></li>
+        {% else %}
+        <li><a href="/login">Zaloguj się</a></li>
+        <li><a href="/register">Zarejestruj się</a></li>
+        {% endif %}
+        <li><a href="/about">O nas</a></li>
+        <li><a href="/contact">Kontakt</a></li>
       </ul>
     </nav>
   </header>
@@ -103,7 +109,7 @@
         <p>Data: {{ zamowienie.data_dostawy }}</p>
         <p>Status: <span class="status-ready">Gotowe do odbioru</span></p>
         <p>Adres dostawy: {{ zamowienie.adres }}, {{ zamowienie.nr_domu_dostawy }}, {{ zamowienie.kod_pocztowy_dostawy }} {{ zamowienie.miejscowosc_dostawy }}</p>
-        <p><strong>Dieta:</strong> {{ zamowienie.dieta }} – {{ zamowienie.dieta_opis }}</p>
+        <p><strong>Dieta:</strong> {{ zamowienie.dieta }}</p>
         <p><strong>Pozycje zamówione:</strong></p>
         <ul>
           {% for p in zamowienie.pozycje %}

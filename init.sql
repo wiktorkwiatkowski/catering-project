@@ -91,14 +91,6 @@ CREATE TABLE zamowienie_pozycje (
     FOREIGN KEY (pozycja_menu_id) REFERENCES pozycje_menu(id) ON DELETE CASCADE
 );
 
--- Tabela ocena (ocena dotyczy konkretnego zamowienia)
-CREATE TABLE ocena (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    zamowienie_id INT UNIQUE,
-    liczba_gwiazdek INT CHECK (liczba_gwiazdek BETWEEN 0 AND 5),
-    FOREIGN KEY (zamowienie_id) REFERENCES zamowienie(id) ON DELETE CASCADE
-);
-
 -- -------------------------------------------------
 -- PRZYKLADOWE DANE
 -- -------------------------------------------------
@@ -194,7 +186,3 @@ INSERT INTO zamowienie (
 -- Zamowienie_pozycje
 INSERT INTO zamowienie_pozycje (zamowienie_id, pozycja_menu_id) VALUES
 (1, 1), (1, 2), (1, 3);
-
--- Ocena
-INSERT INTO ocena (zamowienie_id, liczba_gwiazdek) VALUES
-(1, 5);

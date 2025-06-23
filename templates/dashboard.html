@@ -51,6 +51,14 @@
     .dashboard-section {
       margin-top: 30px;
     }
+
+    .order-item {
+      border: 1px solid #ccc;
+      padding: 15px;
+      margin-bottom: 15px;
+      border-radius: 5px;
+      background-color: #fefefe;
+    }
   </style>
 </head>
 
@@ -78,7 +86,6 @@
           <p><strong>Rola:</strong> {{ role }}</p>
           <p><strong>Telefon:</strong> {{ user.numer_telefonu }}</p>
           <p><strong>Adres:</strong> {{ user.adres }}</p>
-
         </div>
         <div class="profile-actions">
           <a href="/profile/edit" class="edit-profile-btn">Edytuj profil</a>
@@ -95,8 +102,14 @@
         <p><strong>Zamówienie #{{ zamowienie.kod_unikalny }}</strong></p>
         <p>Data: {{ zamowienie.data_dostawy }}</p>
         <p>Status: <span class="status-ready">Gotowe do odbioru</span></p>
-        <p>Adres dostawy: {{ zamowienie.adres }}, {{ zamowienie.nr_domu_dostawy }}, {{ zamowienie.kod_pocztowy_dostawy
-          }} {{ zamowienie.miejscowosc_dostawy }}</p>
+        <p>Adres dostawy: {{ zamowienie.adres }}, {{ zamowienie.nr_domu_dostawy }}, {{ zamowienie.kod_pocztowy_dostawy }} {{ zamowienie.miejscowosc_dostawy }}</p>
+        <p><strong>Dieta:</strong> {{ zamowienie.dieta }} – {{ zamowienie.dieta_opis }}</p>
+        <p><strong>Pozycje zamówione:</strong></p>
+        <ul>
+          {% for p in zamowienie.pozycje %}
+          <li>{{ p.typ|capitalize }} – {{ p.nazwa }} ({{ p.cena }} zł)</li>
+          {% endfor %}
+        </ul>
       </div>
       {% endfor %}
       {% else %}
@@ -104,7 +117,6 @@
       {% endif %}
     </div>
     {% endif %}
-
 
     {% if 'dostawca' in role %}
     <div class="dashboard-section">

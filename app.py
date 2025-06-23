@@ -150,12 +150,24 @@ def dashboard():
     zamowienia = []
     if role == 'Klient':
         cursor.execute("""
-            SELECT * FROM zamowienie
-            WHERE uzytkownik_id = %s
-            ORDER BY data_dostawy DESC
-        """, (user_id,))
-        zamowienia = cursor.fetchall()
+        SELECT z.*, od.dieta, od.opis AS dieta_opis
+        FROM zamowienie z
+        LEFT JOIN opcja_dietetyczna od ON z.opcja_dietetyczna_id = od.id
+        WHERE z.uzytkownik_id = %s
+        ORDER BY z.data_dostawy DESC
+    """, (user_id,))
+    zamowienia = cursor.fetchall()
     
+    # Pobierz pozycje do każdego zamówienia
+    for zam in zamowienia:
+        cursor.execute("""
+            SELECT pm.nazwa, pm.typ, pm.cena
+            FROM zamowienie_pozycje zp
+            JOIN pozycje_menu pm ON zp.pozycja_menu_id = pm.id
+            WHERE zp.zamowienie_id = %s
+        """, (zam['id'],))
+        zam['pozycje'] = cursor.fetchall()
+        
     # Pobierz dostawy (jeśli jest dostawcą)
     dostawy = []
     if role == 'Dostawca':

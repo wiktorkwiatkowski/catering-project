@@ -138,17 +138,10 @@ INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
 (2, 'Spaghetti bolognese', 'obiad', 21.00),
 (2, 'Kanapka z hummusem', 'kolacja', 13.00);
 
--- Zamowienie
-INSERT INTO zamowienie (uzytkownik_id, menu_id, dostawca_id, data_dostawy, adres, ilosc, kod_unikalny, status, opcja_dietetyczna_id) VALUES
-(1, 1, 1, '2025-05-20', 'ul. Kwiatowa 5', 2, 1234, TRUE, 6);
+-- -- Zamowienie
+-- INSERT INTO zamowienie (uzytkownik_id, menu_id, dostawca_id, data_dostawy, adres, ilosc, kod_unikalny, status, opcja_dietetyczna_id) VALUES
+-- (1, 1, 1, '2025-05-20', 'ul. Kwiatowa 5', 2, 1234, TRUE, 6);
 
--- Zamowienie_pozycje
-INSERT INTO zamowienie_pozycje (zamowienie_id, pozycja_menu_id) VALUES
-(1, 1), (1, 2), (1, 3);
-
--- Ocena
-INSERT INTO ocena (zamowienie_id, liczba_gwiazdek) VALUES
-(1, 5);
 
 USE catering;
 
@@ -186,3 +179,22 @@ UPDATE uzytkownik SET
     kod_pocztowy = '00-001',
     nr_domu = '3'
 WHERE email = 'piotr.zielinski@example.com';
+
+-- Dopiero teraz zamowienie
+INSERT INTO zamowienie (
+    uzytkownik_id, menu_id, dostawca_id, data_dostawy,
+    adres, miejscowosc_dostawy, kod_pocztowy_dostawy, nr_domu_dostawy,
+    ilosc, kod_unikalny, status, opcja_dietetyczna_id
+) VALUES (
+    1, 1, 1, '2025-05-20',
+    'ul. Kwiatowa 5', 'Wrocław', '50-001', '5',
+    2, 1234, TRUE, 6
+);
+
+-- Zamowienie_pozycje
+INSERT INTO zamowienie_pozycje (zamowienie_id, pozycja_menu_id) VALUES
+(1, 1), (1, 2), (1, 3);
+
+-- Ocena
+INSERT INTO ocena (zamowienie_id, liczba_gwiazdek) VALUES
+(1, 5);

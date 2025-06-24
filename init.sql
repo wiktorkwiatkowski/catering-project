@@ -119,7 +119,11 @@ INSERT INTO opcja_dietetyczna (dieta, opis) VALUES
 -- Menu
 INSERT INTO menu (opcja_dietetyczna_id, data_dostepnosci, cena, opis) VALUES
 (1, '2025-05-20', 50.00, 'Menu na wtorek: fit'),
-(2, '2025-05-21', 55.00, 'Menu na środę: klasyczne');
+(2, '2025-05-21', 55.00, 'Menu na środę: klasyczne'),
+(3, '2025-06-25', 49.00, 'Menu niskowęglowe'),
+(4, '2025-06-25', 47.00, 'Menu wegetariańskie'),
+(5, '2025-06-25', 59.00, 'Menu sportowe'),
+(6, '2025-06-25', 51.00, 'Menu bez laktozy');
 
 -- Pozycje menu
 INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
@@ -130,9 +134,29 @@ INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
 (2, 'Spaghetti bolognese', 'obiad', 21.00),
 (2, 'Kanapka z hummusem', 'kolacja', 13.00);
 
--- -- Zamowienie
--- INSERT INTO zamowienie (uzytkownik_id, menu_id, dostawca_id, data_dostawy, adres, ilosc, kod_unikalny, status, opcja_dietetyczna_id) VALUES
--- (1, 1, 1, '2025-05-20', 'ul. Kwiatowa 5', 2, 1234, TRUE, 6);
+-- Niskoweglowa
+INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
+(3, 'Omlet z warzywami', 'sniadanie', 12.00),
+(3, 'Grillowany łosoś z brokułami', 'obiad', 24.00),
+(3, 'Sałatka z tuńczykiem', 'kolacja', 15.00);
+
+-- Wegetarianska
+INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
+(4, 'Jajka sadzone z pieczywem', 'sniadanie', 11.50),
+(4, 'Makaron z warzywami', 'obiad', 20.00),
+(4, 'Tosty z serem i pomidorem', 'kolacja', 13.00);
+
+-- Sport
+INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
+(5, 'Proteinowa owsianka', 'sniadanie', 13.00),
+(5, 'Kurczak z kaszą i warzywami', 'obiad', 26.00),
+(5, 'Sałatka białkowa z jajkiem', 'kolacja', 15.00);
+
+-- Bez laktozy
+INSERT INTO pozycje_menu (menu_id, nazwa, typ, cena) VALUES
+(6, 'Tosty bez sera z awokado', 'sniadanie', 11.00),
+(6, 'Gulasz z soczewicy', 'obiad', 22.00),
+(6, 'Pieczone warzywa z hummusem', 'kolacja', 14.00);
 
 
 USE catering;
@@ -148,10 +172,6 @@ ALTER TABLE zamowienie
 ADD COLUMN miejscowosc_dostawy VARCHAR(100) AFTER adres,
 ADD COLUMN kod_pocztowy_dostawy VARCHAR(10) AFTER miejscowosc_dostawy,
 ADD COLUMN nr_domu_dostawy VARCHAR(20) AFTER kod_pocztowy_dostawy;
-
--- Opcjonalnie: możesz usunąć stare kolumny adres po przeniesieniu danych
--- ALTER TABLE uzytkownik DROP COLUMN adres;
--- ALTER TABLE zamowienie DROP COLUMN adres;
 
 -- Aktualizacja przykładowych danych
 UPDATE uzytkownik SET 
